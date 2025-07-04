@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/proto"
+	"github.com/pkg/errors"
 	"time"
 )
 
 // ConnMock is a mock implementation of clickhouse driver.Conn interface
 type ConnMock struct {
+	Rows *driver.Rows
+	Row  *driver.Row
 }
 
 func (c ConnMock) ServerVersion() (*driver.ServerVersion, error) {
@@ -35,13 +38,19 @@ func (c ConnMock) Select(ctx context.Context, dest any, query string, args ...an
 }
 
 func (c ConnMock) Query(ctx context.Context, query string, args ...any) (driver.Rows, error) {
-	//TODO implement me
-	panic("implement me")
+	if c.Rows != nil {
+		return *c.Rows, nil
+	}
+
+	return nil, errors.New("no rows set")
 }
 
 func (c ConnMock) QueryRow(ctx context.Context, query string, args ...any) driver.Row {
-	//TODO implement me
-	panic("implement me")
+	if c.Row != nil {
+		return *c.Row
+	}
+
+	panic("no row set")
 }
 
 func (c ConnMock) PrepareBatch(ctx context.Context, query string, opts ...driver.PrepareBatchOption) (driver.Batch, error) {
