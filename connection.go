@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// ConnMock is a mock implementation of clickhouse driver.Conn interface
+// ConnMock is a mock implementation of the clickhouse driver.Conn interface
 type ConnMock struct {
 	Rows *Rows
 	Row  *Row

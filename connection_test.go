@@ -54,6 +54,10 @@ func TestConnMock_Query(t *testing.T) {
 				t.Errorf("Query() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			if err != nil {
+				return // Skip Close() if we got an error
+			}
+			defer rows.Close()
 			if !tt.wantErr && rows == nil {
 				t.Error("Query() returned nil rows when error wasn't expected")
 			}

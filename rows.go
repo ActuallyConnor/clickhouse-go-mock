@@ -14,7 +14,12 @@ type Rows struct {
 }
 
 func (r Rows) Next() bool {
+	if r.currentRow >= len(r.Data) {
+		return false
+	}
+	r.currentRow++
 	return true
+
 }
 
 func (r Rows) Scan(dest ...any) error {
@@ -67,6 +72,8 @@ func (r Rows) Columns() []string {
 }
 
 func (r Rows) Close() error {
+	r.currentRow = len(r.Data) // Ensure Next() will return false
+	r.Data = nil               // Clean up the data
 	return nil
 }
 
