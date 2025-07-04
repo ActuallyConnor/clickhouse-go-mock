@@ -2,31 +2,56 @@ package mock
 
 import (
 	"fmt"
+	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	"io"
 	"reflect"
+	"sync"
+)
 
-	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
+var (
+	rowStates = sync.Map{}
+	stateID   int64
+	stateMu   sync.Mutex
 )
 
 type Rows struct {
 	Data       [][]interface{}
-	currentRow int
+	currentRow int32
+	id         int64
+}
+
+func NewRows(data [][]interface{}) *Rows {
+	stateMu.Lock()
+	stateID++
+	id := stateID
+	stateMu.Unlock()
+
+	rows := &Rows{
+		Data: data,
+		id:   id,
+	}
+	rowStates.Store(id, int32(0))
+	return rows
 }
 
 func (r Rows) Next() bool {
-	if r.currentRow >= len(r.Data) {
+	val, _ := rowStates.Load(r.id)
+	current := val.(int32)
+	if current >= int32(len(r.Data)) {
 		return false
 	}
-	r.currentRow++
+	rowStates.Store(r.id, current+1)
 	return true
-
 }
 
 func (r Rows) Scan(dest ...any) error {
-	if r.currentRow >= len(r.Data) {
+	val, _ := rowStates.Load(r.id)
+	current := val.(int32) - 1 // subtract 1 because Next() already incremented
+	if current < 0 || current >= int32(len(r.Data)) {
 		return io.EOF
 	}
-	row := r.Data[r.currentRow]
+
+	row := r.Data[current]
 	for i, val := range row {
 		if i >= len(dest) {
 			break
@@ -37,7 +62,7 @@ func (r Rows) Scan(dest ...any) error {
 }
 
 func (r Rows) ScanStruct(dest any) error {
-	if r.currentRow >= len(r.Data) {
+	if r.currentRow >= int32(len(r.Data)) {
 		return io.EOF
 	}
 	row := r.Data[r.currentRow]
@@ -72,8 +97,7 @@ func (r Rows) Columns() []string {
 }
 
 func (r Rows) Close() error {
-	r.currentRow = len(r.Data) // Ensure Next() will return false
-	r.Data = nil               // Clean up the data
+	rowStates.Delete(r.id)
 	return nil
 }
 

@@ -35,11 +35,9 @@ func TestConnMock_Query(t *testing.T) {
 		},
 		{
 			name: "with rows",
-			rows: &Rows{
-				Data: [][]interface{}{
-					{"test"},
-				},
-			},
+			rows: NewRows([][]interface{}{
+				{"test"},
+			}),
 			wantErr: false,
 		},
 	}
@@ -60,6 +58,15 @@ func TestConnMock_Query(t *testing.T) {
 			defer rows.Close()
 			if !tt.wantErr && rows == nil {
 				t.Error("Query() returned nil rows when error wasn't expected")
+			}
+
+			for rows.Next() {
+				var s string
+				rows.Scan(&s)
+
+				if s != "test" {
+					t.Errorf("Query() returned unexpected value: %v", s)
+				}
 			}
 		})
 	}
