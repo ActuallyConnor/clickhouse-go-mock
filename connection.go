@@ -11,8 +11,8 @@ import (
 
 // ConnMock is a mock implementation of clickhouse driver.Conn interface
 type ConnMock struct {
-	Rows *driver.Rows
-	Row  *driver.Row
+	Rows *Rows
+	Row  *Row
 }
 
 func (c ConnMock) ServerVersion() (*driver.ServerVersion, error) {
