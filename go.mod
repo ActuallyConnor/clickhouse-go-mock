@@ -4,7 +4,10 @@ go 1.23.0
 
 toolchain go1.23.3
 
-require github.com/ClickHouse/clickhouse-go/v2 v2.36.0
+require (
+	github.com/ClickHouse/clickhouse-go/v2 v2.36.0
+	github.com/pkg/errors v0.9.1
+)
 
 require (
 	github.com/ClickHouse/ch-go v0.66.0 // indirect
